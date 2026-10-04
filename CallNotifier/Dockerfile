@@ -14,4 +14,3 @@ EXPOSE 10000
 
 # Render provides the PORT env var; fall back to 10000 (Render's default)
 ENTRYPOINT ["sh", "-c", "java -XX:MaxRAMPercentage=75 -Dserver.port=${PORT:-10000} -jar app.jar"]
- 

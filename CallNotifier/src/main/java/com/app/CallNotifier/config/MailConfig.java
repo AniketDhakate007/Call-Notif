@@ -25,6 +25,10 @@ public class MailConfig {
         Properties props = sender.getJavaMailProperties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
+        // Fail fast instead of hanging forever if Gmail can't be reached
+        props.put("mail.smtp.connectiontimeout", "10000");
+        props.put("mail.smtp.timeout", "10000");
+        props.put("mail.smtp.writetimeout", "10000");
         return sender;
     }
 }

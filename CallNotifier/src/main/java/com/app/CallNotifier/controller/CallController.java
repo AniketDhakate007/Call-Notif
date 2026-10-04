@@ -33,7 +33,6 @@ public class CallController {
         this.mailSender = mailSender;
     }
 
-    // Open http://<pc-ip>:8080/api/health in your phone browser to test connectivity
     @GetMapping("/health")
     public String health() {
         return "ok";
@@ -44,16 +43,20 @@ public class CallController {
     @PostMapping("/calls")
     public ResponseEntity<String> receiveCall(@RequestBody CallEvent event) {
         log.info("Call event: number={}, notify={}", event.number(), event.notifyEmail());
-
-        SimpleMailMessage msg = new SimpleMailMessage();
-        msg.setFrom(fromAddress);
-        msg.setTo(event.notifyEmail());
-        msg.setSubject("Call from " + event.number());
-        msg.setText("You got a call from " + event.number()
-                + "\nTime: " + FORMAT.format(Instant.ofEpochMilli(event.timestamp())));
-
-        mailSender.send(msg); // throws on failure -> HTTP 500 -> the app retries
-        log.info("Email sent to {}", event.notifyEmail());
-        return ResponseEntity.ok("sent");
+        try {
+            SimpleMailMessage msg = new SimpleMailMessage();
+            msg.setFrom(fromAddress);
+            msg.setTo(event.notifyEmail());
+            msg.setSubject("Call from " + event.number());
+            msg.setText("You got a call from " + event.number()
+                    + "\nTime: " + FORMAT.format(Instant.ofEpochMilli(event.timestamp())));
+            mailSender.send(msg);
+            log.info("Email sent to {}", event.notifyEmail());
+            return ResponseEntity.ok("sent");
+        } catch (Exception e) {
+            log.error("Email failed", e);
+            // The reason comes back in the response, so curl and the app can show it
+            return ResponseEntity.status(500).body("email failed: " + e.getMessage());
+        }
     }
 }
